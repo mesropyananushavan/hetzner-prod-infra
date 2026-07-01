@@ -1,0 +1,13 @@
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!*.tfvars.example
+.env
+.env.*
+owner-inputs.local.env
+*.pem
+*.key
+!*.pub
+kubeconfig*
+.idea/
