@@ -1,0 +1,25 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: hetzner-prod-local
+servers: 1
+agents: 2
+ports:
+  - port: 127.0.0.1:8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 127.0.0.1:8443:443
+    nodeFilters:
+      - loadbalancer
+options:
+  k3s:
+    extraArgs:
+      - arg: --disable=servicelb
+        nodeFilters:
+          - server:*
+      # Та же метка воркеров, что ставит prod cloud-init (worker.yaml.tpl),
+      # чтобы nodeSelector Traefik проверялся локально.
+      - arg: --node-label=node-role.smp.am/worker=true
+        nodeFilters:
+          - agent:*
+

@@ -7,8 +7,6 @@ spec:
   valuesContent: |-
     deployment:
       kind: DaemonSet
-    # Метка в собственном домене: kubelet запрещает самоназначение меток в
-    # пространстве node-role.kubernetes.io через --node-label (нода не регистрируется).
     nodeSelector:
       node-role.smp.am/worker: "true"
     service:

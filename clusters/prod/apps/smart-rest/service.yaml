@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smart-rest-nginx
+  labels:
+    app.kubernetes.io/name: smart-rest
+    app.kubernetes.io/component: nginx
+spec:
+  selector:
+    app.kubernetes.io/name: smart-rest
+    app.kubernetes.io/component: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

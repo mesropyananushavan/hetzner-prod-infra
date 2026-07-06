@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-rest-nginx
+spec:
+  replicas: 2
+  template:
+    spec:
+      imagePullSecrets: null
+      containers:
+        - name: nginx
+          image: traefik/whoami:v1.10
+          envFrom: null
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10

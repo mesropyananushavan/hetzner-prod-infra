@@ -7,7 +7,7 @@ runcmd:
       --kubelet-arg=container-log-max-size=50Mi \
       --kubelet-arg=container-log-max-files=3 \
       --node-ip=${private_ip} \
-      --node-label=node-role.kubernetes.io/worker=true \
+      --node-label=node-role.smp.am/worker=true \
       --flannel-iface=enp7s0
   - ufw allow from 10.10.0.0/16
   - ufw allow 22/tcp

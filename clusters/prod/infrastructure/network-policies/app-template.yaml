@@ -1,3 +1,7 @@
+# ШАБЛОН — не применяется автоматически (нет в kustomization).
+# Копируй в каталог нового приложения, заменяй example-prod/example-web на свои
+# namespace/метки и порты. Для приложения из нескольких компонентов
+# (nginx + php-fpm) см. рабочий пример: clusters/prod/apps/smart-rest/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -70,6 +74,10 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: traefik
+        - ipBlock:
+            cidr: 10.10.0.0/16
+        - ipBlock:
+            cidr: 10.42.0.0/16
       ports:
         - protocol: TCP
           port: 80

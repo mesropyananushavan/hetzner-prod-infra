@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: smart-rest-prod
+resources:
+  - namespace.yaml
+  - resourcequota.yaml
+  - limitrange.yaml
+  - networkpolicy.yaml
+  - deployment.yaml
+  - deployment-php-fpm.yaml
+  - service.yaml
+  - service-php-fpm.yaml
+  - ingress.yaml
+  - pdb.yaml
+  - pdb-php-fpm.yaml
+  - hpa.yaml
+  - hpa-php-fpm.yaml

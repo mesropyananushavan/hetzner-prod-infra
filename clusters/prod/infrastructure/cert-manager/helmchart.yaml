@@ -1,0 +1,20 @@
+# Установка самого cert-manager через встроенный в k3s helm-controller.
+# Версию перепроверить перед обновлением: https://github.com/cert-manager/cert-manager/releases
+# (v1.20.3 — актуальный релиз на 2026-07-06).
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cert-manager
+  namespace: kube-system
+spec:
+  repo: https://charts.jetstack.io
+  chart: cert-manager
+  version: v1.20.3
+  targetNamespace: cert-manager
+  valuesContent: |-
+    crds:
+      enabled: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi

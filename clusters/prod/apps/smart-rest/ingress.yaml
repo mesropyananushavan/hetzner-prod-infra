@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: smart-rest-nginx
+  annotations:
+    # На период отладки DNS/конфигурации можно временно поставить letsencrypt-staging,
+    # чтобы не сжечь rate limit Let's Encrypt; перед переключением клиентов вернуть prod.
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - api.smart-rest.example.com
+      secretName: smart-rest-tls
+  rules:
+    - host: api.smart-rest.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: smart-rest-nginx
+                port:
+                  name: http

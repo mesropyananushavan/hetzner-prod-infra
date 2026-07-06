@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smart-rest-php-fpm
+  labels:
+    app.kubernetes.io/name: smart-rest
+    app.kubernetes.io/component: php-fpm
+spec:
+  selector:
+    app.kubernetes.io/name: smart-rest
+    app.kubernetes.io/component: php-fpm
+  ports:
+    - name: fastcgi
+      port: 9000
+      targetPort: fastcgi

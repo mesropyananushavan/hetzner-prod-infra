@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-rest-php-fpm
+  labels:
+    app.kubernetes.io/name: smart-rest
+    app.kubernetes.io/component: php-fpm
+spec:
+  # replicas не задаём: масштабом управляет HPA, иначе каждый apply/GitOps-sync
+  # сбрасывал бы количество реплик обратно.
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: smart-rest
+      app.kubernetes.io/component: php-fpm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: smart-rest
+        app.kubernetes.io/component: php-fpm
+    spec:
+      imagePullSecrets:
+        - name: gitlab-smp
+      containers:
+        - name: php-fpm
+          image: registry.gitlab.smp.am/rnckube/rancher-smartrest/web-main-php-fpm:CHANGE_ME
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: fastcgi
+              containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: smart-rest-config
+                optional: true
+            - secretRef:
+                name: smart-rest-secret
+                optional: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: fastcgi
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: fastcgi
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3

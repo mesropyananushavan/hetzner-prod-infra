@@ -12,9 +12,7 @@ runcmd:
       --node-ip=${private_ip} \
       --advertise-address=${private_ip} \
       --flannel-iface=enp7s0 \
-      --tls-san=10.10.1.10 \
-      --tls-san=10.10.1.11 \
-      --tls-san=10.10.1.12 \
+      ${tls_san_args} \
       --node-taint=node-role.kubernetes.io/control-plane:NoSchedule
   - ufw allow from 10.10.0.0/16
   - ufw allow 22/tcp

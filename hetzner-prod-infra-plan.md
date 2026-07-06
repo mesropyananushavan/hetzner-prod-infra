@@ -720,7 +720,7 @@ runcmd:
       --kubelet-arg=container-log-max-size=50Mi \
       --kubelet-arg=container-log-max-files=3 \
       --node-ip=${private_ip} \
-      --node-label=node-role.kubernetes.io/worker=true \
+      --node-label=node-role.smp.am/worker=true \
       --flannel-iface=enp7s0
   - ufw allow from 10.10.0.0/16
   - ufw allow 22/tcp
@@ -735,11 +735,16 @@ disk pressure. `cp_ip` тут по-прежнему `10.10.1.10` (только c
 через уже работающий flannel/etcd остальных нод после первого хендшейка, но если хочешь совсем убрать эту
 точку отказа при пересоздании worker-нод — вынеси `cp_ip` в `for_each`/`random_shuffle` по всем трём
 приватным IP control-plane, это уже отдельная доработка Terraform-кода, не показанная здесь.
-`--node-label=node-role.kubernetes.io/worker=true` нужен не для Kubernetes как такового, а для нашей
+`--node-label=node-role.smp.am/worker=true` нужен не для Kubernetes как такового, а для нашей
 дальнейшей донастройки Traefik в Этапе 3.3: ingress-контроллер должен запускаться только на worker-нодах,
 а не "где получится". Без явного worker-label пришлось бы полагаться только на taint control-plane, но chart
 может добавить tolerations в будущей версии. Явный `nodeSelector` в Traefik + явный label на workers делает
-placement предсказуемым.
+placement предсказуемым. **Правка после четвёртого раунда ревью (июль 2026): метка в собственном домене
+`node-role.smp.am`, НЕ `node-role.kubernetes.io`.** Kubelet запрещает самоназначение меток в зарезервированных
+пространствах `kubernetes.io`/`k8s.io` через `--node-labels` — с меткой `node-role.kubernetes.io/worker=true`
+агент вообще не регистрируется в кластере (проверено эмпирически в k3d: агент с такой меткой висит в таймауте
+регистрации, с меткой в собственном домене поднимается нормально). В проде это означало бы, что все 4
+worker-ноды молча не присоединятся к кластеру.
 
 **Версия K3s (`INSTALL_K3S_VERSION`) теперь берётся из единой Terraform-переменной `k3s_version` (Этап 1.2,
 подставляется через `templatefile()` в Этапе 1.5) — правка после третьего раунда ревью.** Раньше это было
@@ -963,7 +968,7 @@ spec:
     deployment:
       kind: DaemonSet
     nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+      node-role.smp.am/worker: "true"
     service:
       type: ClusterIP
     hostNetwork: true
@@ -992,7 +997,7 @@ kubectl -n kube-system get pods -l app.kubernetes.io/name=traefik -o wide
 kubectl get ingressclass
 # должен быть класс "traefik"
 kubectl -n kube-system get ds traefik -o yaml | grep -A8 nodeSelector
-# должен быть node-role.kubernetes.io/worker: "true"
+# должен быть node-role.smp.am/worker: "true"
 ```
 **Правка после финального ревью:** раньше план полагался на то, что Traefik не попадёт на control-plane из-за
 taint. Это верно только пока chart не добавляет подходящий toleration. Для компонента, который слушает

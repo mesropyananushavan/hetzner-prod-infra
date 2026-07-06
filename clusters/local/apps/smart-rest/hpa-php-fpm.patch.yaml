@@ -1,0 +1,8 @@
+# Локальная квота CPU не вмещает вторую реплику php-fpm.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: smart-rest-php-fpm
+spec:
+  minReplicas: 1
+  maxReplicas: 1

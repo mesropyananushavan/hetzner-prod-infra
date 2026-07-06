@@ -1,0 +1,123 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-traefik
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: smart-rest
+      app.kubernetes.io/component: nginx
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+        # Traefik работает с hostNetwork, поэтому его трафик приходит с адресов
+        # нод (private CIDR) и pod CIDR, а не только от pod selector.
+        - ipBlock:
+            cidr: 10.10.0.0/16
+        - ipBlock:
+            cidr: 10.42.0.0/16
+      ports:
+        - protocol: TCP
+          port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx-to-php-fpm
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: smart-rest
+      app.kubernetes.io/component: php-fpm
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: smart-rest
+              app.kubernetes.io/component: nginx
+      ports:
+        - protocol: TCP
+          port: 9000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: smart-rest
+      app.kubernetes.io/component: nginx
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: smart-rest
+              app.kubernetes.io/component: php-fpm
+      ports:
+        - protocol: TCP
+          port: 9000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-php-fpm-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: smart-rest
+      app.kubernetes.io/component: php-fpm
+  policyTypes:
+    - Egress
+  egress:
+    # MariaDB на отдельной VM в приватной сети (см. Этап 5 плана).
+    - to:
+        - ipBlock:
+            cidr: 10.10.1.100/32
+      ports:
+        - protocol: TCP
+          port: 3306
+    # Внешние HTTPS API.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443

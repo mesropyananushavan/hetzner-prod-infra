@@ -1,0 +1,15 @@
+# Локально вместо php-fpm крутится whoami на порту 80 — правим порт в ingress-правиле.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx-to-php-fpm
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: smart-rest
+              app.kubernetes.io/component: nginx
+      ports:
+        - protocol: TCP
+          port: 80

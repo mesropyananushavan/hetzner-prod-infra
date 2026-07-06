@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-rest-php-fpm
+spec:
+  replicas: 1
+  template:
+    spec:
+      imagePullSecrets: null
+      containers:
+        - name: php-fpm
+          image: traefik/whoami:v1.10
+          envFrom: null
+          ports:
+            - $patch: replace
+            - name: fastcgi
+              containerPort: 80
+          readinessProbe:
+            tcpSocket: null
+            httpGet:
+              path: /
+              port: fastcgi
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: null
+            httpGet:
+              path: /
+              port: fastcgi
+            initialDelaySeconds: 10
+            periodSeconds: 10
